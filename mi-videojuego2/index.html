@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CodeBot: Cyber Quest - Un videojuego interactivo y cyberpunk para aprender a programar desde cero con lógica, bucles, condicionales y funciones.">
+  <title>CodeBot: Cyber Quest | Aprende a Programar Jugando</title>
+  
+  <!-- Google Fonts: Space Grotesk, Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Background Cyber Grid Ambient Effect -->
+  <div class="cyber-bg-grid" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-glow-2" aria-hidden="true"></div>
+
+  <div id="app" class="app-container">
+    <!-- Top Navigation & HUD Header -->
+    <header class="game-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <span class="bot-eye"></span>
+          <span class="bot-antenna"></span>
+        </div>
+        <div class="brand-text">
+          <h1 class="logo-title">CODE<span class="highlight">BOT</span></h1>
+          <span class="logo-subtitle">CYBER QUEST // v2.0</span>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <div class="level-pill" id="level-display-btn" title="Haz clic para seleccionar nivel">
+          <span class="level-badge" id="hud-level-number">Nivel 01</span>
+          <span class="level-name" id="hud-level-title">Primeros Pasos</span>
+          <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16">
+            <path d="M7 10l5 5 5-5z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="hud-stats">
+          <div class="stat-badge" title="Cristales de Datos">
+            <span class="stat-icon">💎</span>
+            <span id="hud-gems-count">0 / 0</span>
+          </div>
+          <div class="stat-badge" title="Líneas de Código">
+            <span class="stat-icon">📜</span>
+            <span id="hud-lines-count">0 líneas</span>
+          </div>
+          <div class="stat-badge stars-badge" title="Estrellas del nivel">
+            <span id="hud-stars">⭐ 0/3</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-actions">
+        <button id="btn-codex" class="hud-btn" title="Manual del Programador">
+          <span class="icon">📖</span>
+          <span class="btn-text">Glosario</span>
+        </button>
+        <button id="btn-levels-modal" class="hud-btn" title="Mapa de Misiones">
+          <span class="icon">🗺️</span>
+          <span class="btn-text">Misiones</span>
+        </button>
+        <button id="btn-sound-toggle" class="hud-btn icon-only" title="Activar/Silenciar Sonido">
+          <span id="sound-icon">🔊</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Game Workspace -->
+    <main class="main-workspace">
+      <!-- Left Panel: Cyber Grid Simulation Canvas -->
+      <section class="viewport-section" aria-label="Visualizador del Mundo">
+        <div class="viewport-header">
+          <div class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <div class="viewport-status" id="viewport-status-text">
+            SISTEMA ONLINE - ESPERANDO INSTRUCCIONES
+          </div>
+          <div class="viewport-actions">
+            <button id="btn-canvas-reset-view" class="view-ctrl-btn" title="Centrar cámara">🎯 Centrar</button>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper" id="canvas-container">
+          <canvas id="game-canvas" width="600" height="480"></canvas>
+          
+          <!-- Speech / Tutor Bubble for ByteBot -->
+          <div class="tutor-bubble" id="tutor-bubble">
+            <div class="tutor-avatar">🤖</div>
+            <div class="tutor-content">
+              <strong class="tutor-name">BYTE-01 dice:</strong>
+              <p class="tutor-text" id="tutor-text">¡Hola! Ayúdame a llegar al Portal Cuántico. Usa la función <code>avanzar()</code> en el editor.</p>
+            </div>
+            <button class="tutor-close" id="btn-tutor-close" aria-label="Cerrar mensaje">×</button>
+          </div>
+        </div>
+
+        <!-- Quick Code Blocks Palette (Beginner helper) -->
+        <div class="command-palette">
+          <div class="palette-label">
+            <span>⚡ CHIPS DE CÓDIGO</span>
+            <small class="palette-hint">Haz clic para insertar en el cursor</small>
+          </div>
+          <div class="palette-chips" id="palette-chips-container">
+            <!-- Dynamically populated per level capabilities -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Code Editor & Execution Terminal -->
+      <section class="editor-section" aria-label="Editor de Código y Consola">
+        <div class="editor-tabs">
+          <button class="editor-tab active" data-tab="editor" id="tab-btn-editor">
+            <span class="tab-icon">💻</span>
+            <span>PROGRAMA (JS / ESPAÑOL)</span>
+          </button>
+          <button class="editor-tab" data-tab="terminal" id="tab-btn-terminal">
+            <span class="tab-icon">📟</span>
+            <span>CONSOLA & DEPURADOR</span>
+            <span class="badge-dot" id="terminal-badge-dot"></span>
+          </button>
+          <div class="editor-tab-actions">
+            <button id="btn-code-format" class="mini-icon-btn" title="Autoformatear código">✨ Limpiar</button>
+            <button id="btn-code-reset" class="mini-icon-btn" title="Restaurar código inicial">🔄 Reiniciar</button>
+          </div>
+        </div>
+
+        <!-- Tab 1: Code Editor View -->
+        <div class="tab-content active" id="tab-editor">
+          <div class="code-editor-container">
+            <div class="code-gutter" id="code-gutter">
+              <!-- Line numbers rendered here -->
+              <div>1</div>
+            </div>
+            <div class="code-input-wrapper">
+              <textarea 
+                id="code-editor" 
+                spellcheck="false" 
+                autocomplete="off" 
+                autocorrect="off" 
+                autocapitalize="off"
+                placeholder="// Escribe tus instrucciones aquí...&#10;avanzar();&#10;recoger();"
+              ></textarea>
+              <!-- Syntax highlight backdrop overlay for rich styling -->
+              <pre class="syntax-backdrop" id="syntax-backdrop" aria-hidden="true"><code></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Terminal Output View -->
+        <div class="tab-content" id="tab-terminal">
+          <div class="terminal-container" id="terminal-output">
+            <div class="terminal-line info-line">> Sistema de compilación inicializado.</div>
+            <div class="terminal-line success-line">> ByteBot listo para ejecutar rutinas.</div>
+          </div>
+        </div>
+
+        <!-- Execution Control Dock -->
+        <div class="execution-dock">
+          <div class="control-group-main">
+            <button id="btn-run" class="dock-btn btn-run" title="Ejecutar todo el programa (Ctrl+Enter)">
+              <span class="btn-play-icon">▶</span>
+              <span class="btn-text">EJECUTAR</span>
+            </button>
+            <button id="btn-step" class="dock-btn btn-step" title="Ejecutar una sola línea paso a paso">
+              <span class="btn-step-icon">⏭</span>
+              <span class="btn-text">PASO A PASO</span>
+            </button>
+            <button id="btn-stop" class="dock-btn btn-stop" disabled title="Detener ejecución">
+              <span class="btn-stop-icon">⏹</span>
+              <span class="btn-text">DETENER</span>
+            </button>
+          </div>
+
+          <div class="control-group-speed">
+            <span class="speed-label">VELOCIDAD:</span>
+            <div class="speed-selector">
+              <button class="speed-btn" data-speed="slow">0.5x</button>
+              <button class="speed-btn active" data-speed="normal">1x</button>
+              <button class="speed-btn" data-speed="fast">2x</button>
+              <button class="speed-btn" data-speed="ultra">⚡ Max</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Level Select & Mission Map -->
+    <div class="modal-overlay" id="modal-levels">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-subtitle">MAPA DE SECTORES</span>
+            <h2 class="modal-title">Misiones de Programación</h2>
+          </div>
+          <button class="modal-close-btn" id="btn-close-levels-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="missions-grid" id="missions-grid-container">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Programmer's Codex / Glossary -->
+    <div class="modal-overlay" id="modal-codex">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-subtitle">DOCUMENTACIÓN TÉCNICA</span>
+            <h2 class="modal-title">Glosario & Guía del Programador</h2>
+          </div>
+          <button class="modal-close-btn" id="btn-close-codex-modal">&times;</button>
+        </div>
+        <div class="modal-body codex-body">
+          <div class="codex-nav" id="codex-topics-nav">
+            <button class="codex-nav-item active" data-topic="algoritmos">1. Algoritmos</button>
+            <button class="codex-nav-item" data-topic="secuencias">2. Secuencias</button>
+            <button class="codex-nav-item" data-topic="bucles">3. Bucles (Loops)</button>
+            <button class="codex-nav-item" data-topic="condicionales">4. Condicionales (If/Else)</button>
+            <button class="codex-nav-item" data-topic="funciones">5. Funciones</button>
+            <button class="codex-nav-item" data-topic="bugs">6. Depuración (Debugging)</button>
+          </div>
+          <div class="codex-article" id="codex-article-content">
+            <!-- Article loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Victory / Level Complete -->
+    <div class="modal-overlay" id="modal-victory">
+      <div class="modal-dialog modal-victory-dialog">
+        <div class="victory-header">
+          <div class="victory-icon-glow">🎉</div>
+          <h2 class="victory-title">¡SECTOR REPARADO!</h2>
+          <p class="victory-subtitle" id="victory-level-name">Nivel Completado con Éxito</p>
+        </div>
+
+        <div class="victory-stars" id="victory-stars-display">
+          <span class="star-item star-1">★</span>
+          <span class="star-item star-2">★</span>
+          <span class="star-item star-3">★</span>
+        </div>
+
+        <div class="victory-stats-card">
+          <div class="vstat-row">
+            <span>Objetivo Principal:</span>
+            <span class="vstat-val text-success">✓ Portal alcanzado</span>
+          </div>
+          <div class="vstat-row">
+            <span>Cristales de datos:</span>
+            <span class="vstat-val" id="victory-gems-stat">3 / 3</span>
+          </div>
+          <div class="vstat-row">
+            <span>Líneas de código:</span>
+            <span class="vstat-val" id="victory-lines-stat">4 (Meta: 5)</span>
+          </div>
+          <div class="vstat-row">
+            <span>Eficiencia:</span>
+            <span class="vstat-val" id="victory-efficiency-stat">100% Excelente</span>
+          </div>
+        </div>
+
+        <div class="victory-tips" id="victory-tip-text">
+          ¡Genial! Has usado un bucle para reducir las líneas de código a la mitad.
+        </div>
+
+        <div class="victory-actions">
+          <button class="modal-btn btn-secondary" id="btn-victory-replay">🔄 Reintentar Nivel</button>
+          <button class="modal-btn btn-primary" id="btn-victory-next">Siguiente Misión ➔</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Synthesizer, Levels, Interpreter, Renderer & Core Logic -->
+  <script src="js/audio.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/interpreter.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
